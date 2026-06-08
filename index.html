@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Logicarbone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --text: #0b1220;
+      --muted: #5b6576;
+      --line: #e6e9ef;
+      --primary: #2ea043;      /* vert CTA */
+      --primary-600:#27913b;
+      --focus: #1f6feb;        /* bleu focus discret */
+      --radius: 14px;
+      --shadow: 0 8px 30px rgba(16,24,40,0.06);
+      --hero-max: 860px;
+      --container: 1000px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font:16px/1.6 Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    .wrap{
+      min-height:100dvh;
+      display:grid;
+      grid-template-rows:auto auto 1fr auto;
+    }
+
+    /* Barre de progression haut uniquement */
+    .progressbar{
+      position:sticky; top:0; z-index:20;
+      background:#fff; border-bottom:1px solid var(--line);
+    }
+    .progressbar .inner{
+      max-width:var(--container); margin:0 auto; padding:10px 16px;
+      display:flex; align-items:center; gap:14px;
+    }
+    .progress-label{font-weight:600; font-size:14px; color:#1b2433}
+    .progress-track{
+      flex:1; height:8px; background:#f2f4f7; border-radius:999px; overflow:hidden; border:1px solid #eef1f5;
+    }
+    .progress-fill{height:100%; width:0%; background:linear-gradient(90deg, var(--primary), #42b466); transition:width 220ms ease;}
+    .progress-pct{min-width:48px; text-align:right; font-variant-numeric:tabular-nums; color:var(--muted); font-size:13px}
+
+    header, footer{background:#fff; border-bottom:1px solid var(--line)}
+    footer{border-top:1px solid var(--line); border-bottom:0; color:var(--muted)}
+    .bar{max-width:var(--container); margin:0 auto; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+    .logo{width:26px; height:26px; border-radius:8px; background:linear-gradient(135deg, var(--primary), #42b466)}
+    .header-actions{display:flex; gap:8px; align-items:center}
+    .link{
+      color:#14305b; text-decoration:none; font-weight:600; padding:8px 10px; border-radius:10px;
+      border:1px solid var(--line); background:#f6f9ff;
+      transition:background 120ms ease, border-color 120ms ease, transform 80ms ease;
+    }
+    .link:hover{background:#eef4ff; border-color:#cddafe}
+
+    main{display:grid; place-items:start center; padding:24px 16px 40px}
+    .card{
+      width:100%; max-width:var(--container); background:var(--surface);
+      border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+      padding:22px; display:none; animation:fade .18s ease-out;
+    }
+    .card.active{display:block}
+    @keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)}}
+
+    /* Hero compact */
+    .hero{
+      text-align:center; padding:48px 16px 28px; margin:0 auto; max-width:var(--hero-max);
+    }
+    h1{margin:0 0 12px; font-size:42px; line-height:1.1; letter-spacing:-.3px}
+    .lead{margin:0 auto 18px; max-width:760px; color:#2b3446; font-size:18px}
+
+    .actions{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:6px}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      border:1px solid var(--line); background:#fff; color:var(--text);
+      border-radius:12px; padding:12px 18px; cursor:pointer; font-weight:700;
+      transition:border-color 120ms ease, box-shadow 120ms ease, transform 80ms ease, background 120ms ease;
+    }
+    .btn.primary{background:linear-gradient(135deg,var(--primary),#42b466); color:white; border-color:transparent}
+    .btn.primary:hover{filter:saturate(1.05) brightness(1.02)}
+    .btn.secondary{background:#f6f9ff; color:#14305b; border-color:#d5e1ff}
+    .btn.secondary:hover{background:#eef4ff; border-color:#cddafe}
+
+    /* Accordéon */
+    .accordion{
+      margin:18px auto 0; max-width:var(--hero-max); text-align:left;
+      border:1px solid var(--line); border-radius:12px; background:#fff;
+    }
+    .acc-summary{
+      list-style:none; margin:0; padding:14px 16px; cursor:pointer; user-select:none;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; font-weight:600;
+    }
+    .acc-summary:focus{outline:3px solid rgba(31,111,235,0.25); outline-offset:2px}
+    .acc-icon{transition:transform 180ms ease}
+    .acc-panel{max-height:0; overflow:hidden; transition:max-height 220ms ease; border-top:1px solid transparent; padding:0 16px}
+    .acc-panel.open{border-top:1px solid var(--line); padding:14px 16px; }
+    .muted{color:var(--muted)}
+    p{margin:0 0 10px}
+    h3{margin:0 0 8px; font-size:16px}
+
+    .grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    .stack{display:grid; gap:14px}
+    .option{
+      display:block; text-align:left; border:1px solid var(--line); background:#fff; color:var(--text);
+      border-radius:12px; padding:16px 16px; cursor:pointer;
+      transition:border-color 120ms ease, box-shadow 120ms ease, transform 80ms ease, background 120ms ease;
+    }
+    .option:hover{border-color:#d9dde5; box-shadow:0 6px 20px rgba(16,24,40,0.06)}
+    .option p{margin:0; font-size:14px; color:var(--muted)}
+
+    .backbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px}
+    .back{
+      display:inline-flex; align-items:center; gap:8px; font-weight:600; color:#14305b;
+      padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#f6f9ff; cursor:pointer;
+      transition:background 120ms ease, transform 80ms ease, border-color 120ms ease;
+    }
+    .back:hover{background:#eef4ff; border-color:#cddafe}
+    .right-actions{display:flex; gap:8px; align-items:center}
+
+    .panel{border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:#fff}
+    .panel p + p{margin-top:10px}
+
+    @media (max-width:520px){
+      h1{font-size:32px}
+      .card{padding:18px}
+      .progress-label{display:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Jauge haut -->
+    <div class="progressbar">
+      <div class="inner">
+        <div class="progress-label">Progression</div>
+        <div class="progress-track" role="progressbar" aria-label="Progression du parcours" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-pct" id="progress-pct">0%</div>
+      </div>
+    </div>
+
+    <header>
+      <div class="bar">
+        <div class="brand"><div class="logo" aria-hidden="true"></div> <div>Logicarbone</div></div>
+        <div class="header-actions">
+          <a class="link" href="#" data-go="screen-synthese" aria-label="Voir la synthèse">Voir la synthèse</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- 1) Accueil sans 'En savoir plus', résumé visible -->
+      <section class="card active" id="screen-home" data-title="Accueil" data-step="0">
+        <div class="hero">
+          <h1>Logicarbone</h1>
+          <p class="lead">Démarrez le logigramme de calcul d’impact carbone et laissez-vous guider étape par étape.</p>
+
+          <!-- Résumé visible (texte complet demandé) -->
+          <div class="panel" style="margin:0 auto 12px; text-align:left">
+            <p><strong>Explications générales :</strong> Ces logigrammes ont été construits pour faciliter l’application du Guide de calcul de l’impact carbone des aliments composés. Ils constituent un outil d’aide, construit par le GT Carbone réunissant des professionnels des syndicats. Le choix des valeurs précises de facteur d’émission des intrants relève de la compétence et de la responsabilité des entreprises. A ce titre, elles doivent être en mesure de justifier les choix effectués. La bonne application du guide de calcul de l’impact carbone impose d’attribuer une valeur de facteur d’émission à tous les intrants. Lorsque l’entreprise ne connait pas la provenance d’un intrant, il conviendra de retenir par défaut le facteur d’émission le plus défavorable de l’intrant en question. Lorsque l’entreprise connait la provenance de l’intrant mais que la donnée précise n’existe pas, il conviendra de prendre la donnée générique disponible la plus pertinente. Lorsque les données ne sont pas présentes dans la base de données GFLI ou ECOALIM, les opérateurs peuvent s’orienter vers d’autres bases reconnues (tel agribalyse par exemple) dans la mesure où ils sont en capacité de jusitifier le choix effectué.</p>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" data-go="screen-options-root">Commencer</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2) Racine parcours (sans répéter explications générales) -->
+      <section class="card" id="screen-options-root" data-title="Choisir une catégorie" data-step="1" data-steps-total="10">
+        <div class="backbar">
+          <button class="back" data-back="screen-home">← Retour</button>
+          <div class="right-actions">
+            <a class="link" href="#" data-go="screen-synthese">Synthèse</a>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="grid">
+            <button class="option" data-go="screen-cat1" data-choice="Ma MP est une MP minérale, un micro-ingrédient ou un additif.">
+              <h3>Ma MP est une MP minérale, un micro-ingrédient ou un additif.</h3>
+              <p>Accéder au logigramme correspondant.</p>
+            </button>
+            <button class="option" data-go="screen-cat2" data-choice="Mon intrant est une matière première dérivée du soja">
+              <h3>Mon intrant est une matière première dérivée du soja</h3>
+              <p>Accéder au logigramme soja.</p>
+            </button>
+            <button class="option" data-go="screen-cat3" data-choice="Mon intrant est une matière première végétale et animale qui n'est pas un produit dérivé du soja">
+              <h3>Mon intrant est une matière première végétale et animale qui n'est pas un produit dérivé du soja</h3>
+              <p>Accéder au logigramme hors soja.</p>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3) CAT1 avec explications dans un accordéon replié -->
+      <section class="card" id="screen-cat1" data-title="MP minérale / micro-ingrédient / additif" data-step="2">
+        <div class="backbar">
+          <button class="back" data-back="screen-options-root">← Retour</button>
+          <div class="right-actions">
+            <a class="link" href="#" data-go="screen-synthese">Synthèse</a>
+          </div>
+        </div>
+
+        <!-- Accordéon 'Explications' -->
+        <div class="accordion">
+          <button class="acc-summary" aria-expanded="false" aria-controls="acc-panel-cat1">
+            <span>Explications</span>
+            <svg class="acc-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="acc-panel" id="acc-panel-cat1" role="region">
+            <p><strong>LOGIGRAMME POUR UNE MP MINERALE, UN MICRO INGREDIENT OU UN ADDITIF</strong> Ces logigrammes ont été construits pour faciliter l’application du Guide de calcul de l’impact carbone des aliments composés. Ils constituent un outil d’aide, construit par le GT Carbone réunissant des professionnels des syndicats. Le choix des valeurs précises de facteur d’émission des intrants relève de la compétence et de la responsabilité des entreprises. A ce titre, elles doivent être en mesure de justifier les choix effectués. La bonne application du guide de calcul de l’impact carbone impose d’attribuer une valeur de facteur d’émission à tous les intrants. Lorsque l’entreprise ne connait pas la provenance d’un intrant, il conviendra de retenir par défaut le facteur d’émission le plus défavorable de l’intrant en question. Lorsque l’entreprise connait la provenance de l’intrant mais que la donnée précise n’existe pas, il conviendra de prendre la donnée générique disponible la plus pertinente. Lorsque les données ne sont pas présentes dans la base de données GFLI ou ECOALIM, les opérteurs peuvent s’orienter vers d’autres bases reconnues (tel agribalyse par exemple) dans la mesure où ils sont en capacité de jusitifier le choix effectué.</p>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:14px">
+          <button class="option" data-go="screen-cat1-known" data-choice="Je connais l'origine de l'intrant (pays de production).">
+            <h3>Je connais l'origine de l'intrant (pays de production).</h3>
+            <p>Choisir selon la présence GFLI/ECOALIM.</p>
+          </button>
+          <button class="option" data-go="screen-cat1-unknown" data-choice="Je ne connais pas l'origine de l'intrant.">
+            <h3>Je ne connais pas l'origine de l'intrant.</h3>
+            <p>Utiliser les valeurs les plus défavorables.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat1-known" data-title="Origine connue - Choix base" data-step="3">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat1">← Retour</button>
+          <div class="right-actions">
+            <a class="link" href="#" data-go="screen-synthese">Synthèse</a>
+          </div>
+        </div>
+        <div class="grid">
+          <button class="option" data-go="screen-cat1-known-gfli" data-choice="Si l'intrant est présent dans le GFLI">
+            <h3>Si l'intrant est présent dans le GFLI</h3>
+            <p>Détails des règles de sélection.</p>
+          </button>
+          <button class="option" data-go="screen-cat1-known-ecoalim" data-choice="Si l'intrant n'est pas présent dans le GFLI mais est présent dans ECOALIM">
+            <h3>Si l'intrant n'est pas présent dans le GFLI mais est présent dans ECOALIM</h3>
+            <p>Détails des règles de sélection.</p>
+          </button>
+          <button class="option" data-go="screen-cat1-known-none" data-choice="Si l'intrant n'est présent ni dans GFLI ni dans ECOALIM">
+            <h3>Si l'intrant n'est présent ni dans GFLI ni dans ECOALIM</h3>
+            <p>Données Total Minerals, Additives, Vitamins dans GFLI.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat1-known-gfli" data-title="Intrant présent GFLI" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat1-known">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>J'utilise la donnée dans le GFLI s'il y a une valeur précise pour le couple intrant / pays (valeur Espagne pour un intrant venant d'Espagne).</p>
+          <p>S'il n'y a pas de valeur précise pour le couple intrant / pays dans le GFLI, je prends la donnée ECOALIM précise pour le couple intrant / pays (valeur Espagne pour un intrant venant d'Espagne)</p>
+          <p>Si elle n'existe pas, je prends la donnée de l'intrant dans le GFLI pour une autre provenance : En 1ère intention : Je prends la valeur du continent (valeur Europe pour un intrant provenant d'Espagne) Si ce n'est pas possible, je prends la valeur d'un pays du même continent (si plusieurs valeurs sont disponibles, je prends la plus défavorable) dans le GFLI (ex : valeur Portugal par exemple pour un intrant venant d'Espagne).</p>
+          <p>Si cela n'est pas possible, je prends la valeur monde dans GFLI.</p>
+          <p>Si cela n'est pas possible, je prends la valeur pour un autre pays, qui n'est pas sur le même continent, dans le GFLI. S'il existe plusieurs options, je prends la plus défavorable.</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat1-known-ecoalim" data-title="Intrant non GFLI mais ECOALIM" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat1-known">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Je prends la donnée ECOALIM précise pour le couple intrant / pays si elle existe (valeur Espagne pour un intrant venant d'Espagne).</p>
+          <p>Si la valeur n'existe pas, je prends la donnée de l'intrant dans ECOALIM pour une autre provenance :</p>
+          <p>En 1ère intention : Je prends la valeur du continent (valeur Europe pour un intrant provenant d'Espagne)</p>
+          <p>Si ce n'est pas possible, je prends la valeur d'un pays du même continent (si plusieurs valeurs sont disponibles, je prends la plus défavorable) dans ECOALIM (ex : valeur Portugal par exemple pour un intrant venant d'Espagne).</p>
+          <p>Si cela n'est pas possible, je prends la valeur monde dans ECOALIM.</p>
+          <p>Si cela n'est pas possible, je prends la valeur pour un autre pays, qui n'est pas sur le même continent, dans ECOALIM. S'il existe plusieurs options, je prends la valeur la plus défavorable.</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat1-known-none" data-title="Ni GFLI ni ECOALIM" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat1-known">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel"><p>Je prends la donnée Total Minerals, Additives, Vitamins dans GFLI</p></div>
+      </section>
+
+      <section class="card" id="screen-cat1-unknown" data-title="Origine inconnue" data-step="3">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat1">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>J’utilise la donnée de l'intrant la plus défavorable dans le GFLI.</p>
+          <p>Si l'intrant n'est pas dans le GFLI, j'utilise la donnée de l'intrant la plus défavorable dans ECOALIM.</p>
+          <p>En dernier recours, je prends la donnée Total Minerals, Additives, Vitamins dans GFLI.</p>
+        </div>
+      </section>
+
+      <!-- 4) CAT2 avec explications dans accordéon -->
+      <section class="card" id="screen-cat2" data-title="MP dérivée du soja" data-step="2">
+        <div class="backbar">
+          <button class="back" data-back="screen-options-root">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+
+        <div class="accordion">
+          <button class="acc-summary" aria-expanded="false" aria-controls="acc-panel-cat2">
+            <span>Explications</span>
+            <svg class="acc-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="acc-panel" id="acc-panel-cat2" role="region">
+            <p><strong>LOGIGRAMME POUR UNE MP DERIVE DU SOJA</strong> Ces logigrammes ont été construits pour faciliter l’application du Guide de calcul de l’impact carbone des aliments composés. Ils constituent un outil d’aide, construit par le GT Carbone réunissant des professionnels des syndicats. Le choix des valeurs précises de facteur d’émission des intrants relève de la compétence et de la responsabilité des entreprises. A ce titre, elles doivent être en mesure de justifier les choix effectués. La bonne application du guide de calcul de l’impact carbone impose d’attribuer une valeur de facteur d’émission à tous les intrants. Lorsque l’entreprise ne connait pas la provenance d’un intrant, il conviendra de retenir par défaut le facteur d’émission le plus défavorable de l’intrant en question. Lorsque l’entreprise connait la provenance de l’intrant mais que la donnée précise n’existe pas, il conviendra de prendre la donnée générique disponible la plus pertinente. Lorsque les données ne sont pas présentes dans la base de données GFLI ou ECOALIM, les opérateurs peuvent s’orienter vers d’autres bases reconnues (tel agribalyse par exemple) dans la mesure où ils sont en capacité de jusitifier le choix effectué.</p>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:14px">
+          <button class="option" data-go="screen-cat2-known" data-choice="Je connais le pays d'origine de la graine à l'origine de l'intrant.">
+            <h3>Je connais le pays d'origine de la graine à l'origine de l'intrant.</h3>
+            <p>Choisir entre graines crues et produit dérivé.</p>
+          </button>
+          <button class="option" data-go="screen-cat2-unknown" data-choice="Je ne connais pas le pays d'origine de la graine à l'origine de l'intrant « soja ou produit dérivé du soja ».">
+            <h3>Je ne connais pas le pays d'origine de la graine à l'origine de l'intrant « soja ou produit dérivé du soja ».</h3>
+            <p>Procédure valeurs défavorables / mix.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat2-known" data-title="Soja - Origine connue" data-step="3">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat2">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="grid">
+          <button class="option" data-go="screen-cat2-known-seeds" data-choice="L'intrant est du soja non transformé (= des graines de soja crues)">
+            <h3>L'intrant est du soja non transformé (= des graines de soja crues)</h3>
+            <p>Prise de valeur "graines" selon pays / mix.</p>
+          </button>
+          <button class="option" data-go="screen-cat2-known-derived" data-choice="L'intrant est un produit dérivé du soja">
+            <h3>L'intrant est un produit dérivé du soja</h3>
+            <p>Règles ECOALIM / GFLI / process.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat2-known-seeds" data-title="Soja graines - origine connue" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat2-known">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Je prends la valeur "graines" du pays correspondant dans ECOALIM.</p>
+          <p>Si la valeur n'existe pas, je prends la valeur "graines" du pays correspondant dans GFLI.</p>
+          <p>Si la valeur n'existe pas, je prends la valeur GFLI du Mix Européen (RER) pour des graines crues provenant d'Europe et la valeur GFLI du Mix Monde (GLO) pour des graines crues provenant d'un autre continent.</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat2-known-derived" data-title="Soja dérivé - origine connue" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat2-known">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Si le couple "intrant" "origine de la graine" existe dans ECOALIM, je prends une valeur dans ECOALIM &gt; S'il y a plusieurs lieux de transformation, je prends la valeur du lieu de transformation correspondant à ma situation. &gt; Si le lieu de transformation n'existe pas ou si je ne connais pas le lieu de transformation de mon intrant, je prends la valeur la plus défavorable pour le couple "intrant" "origine de la graine".</p>
+          <p>Si le couple "intrant" "origine de la graine" n'existe pas dans ECOALIM :</p>
+          <p>1/ Si je connais de manière fiable l'impact du process de transformation (dans le cas ou il n'y a pas génération de coproduits), je pars de la valeur pour les graines crues dans ECOALIM et j'ajoute l'impact du process (cf note méthodo 1 pour l'extrusion par exemple)</p>
+          <p>2/ Si je ne connais pas de manière fiable l'impact du process de transformation, je prends dans le GFLI la valeur "produit dérivé du soja" pour le pays de transformation correspondant ou la valeur la plus défavorable si je ne connais pas le lieu de transformation.</p>
+          <p>Si cela n'est pas possible, je prends la valeur GFLI du Mix Européen (RER) si le soja transformé provient d'Europe ou la valeur GFLI du Mix Monde (GLO) si le soja transformé vient d'un autre continent.</p>
+          <p>En dernier recours, je prends la valeur pour l'intrant, intégrant le process le plus proche, disponible dans ECOALIM ou GFLI</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat2-unknown" data-title="Soja - Origine inconnue" data-step="3">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat2">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="grid">
+          <button class="option" data-go="screen-cat2-unknown-seeds" data-choice="L'intrant est du soja non transformé (= des graines crues de soja)">
+            <h3>L'intrant est du soja non transformé (= des graines crues de soja)</h3>
+            <p>Valeur "graines" la plus défavorable.</p>
+          </button>
+          <button class="option" data-go="screen-cat2-unknown-derived" data-choice="L'intrant est un produit dérivé du soja (origine inconnue)">
+            <h3>L'intrant est un produit dérivé du soja</h3>
+            <p>Deux options selon connaissance du lieu de transformation.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat2-unknown-seeds" data-title="Soja graines - origine inconnue" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat2-unknown">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel"><p>Je prends la valeur "graines" la plus défavorable entre les 2 bases de données (GFLI / ECOALIM)</p></div>
+      </section>
+
+      <section class="card" id="screen-cat2-unknown-derived" data-title="Soja dérivé - origine inconnue" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat2-unknown">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="grid">
+          <button class="option" data-go="screen-cat2-unknown-derived-opt1" data-choice="Si je connais le lieu de transformation">
+            <h3>Si je connais le lieu de transformation</h3>
+            <p>Utiliser la valeur correspondante au pays de transformation.</p>
+          </button>
+          <button class="option" data-go="screen-cat2-unknown-derived-opt2" data-choice="Si je ne connais pas le lieu de transformation">
+            <h3>Si je ne connais pas le lieu de transformation</h3>
+            <p>Prendre la valeur la plus défavorable entre GFLI / ECOALIM.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat2-unknown-derived-opt1" data-title="Soja dérivé - lieu connu" data-step="5">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat2-unknown-derived">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Si je connais le lieu de transformation, je prends la valeur correspondante au pays de transformation dans ECOALIM si elle existe. L'intrant est un produit dérivé du soja S'il existe plusieurs valeurs pour ce pays de transformation, je prends la valeur la plus défavorable.</p>
+          <p>Si la valeur n'existe pas dans ECOALIM, je prends la valeur correspondante au pays de transformation dans le GFLI.</p>
+          <p>Si la valeur n'existe pas, je prends la valeur GFLI du Mix Européen (RER) pour le soja transformé provenant d'Europe et la valeur GFLI du Mix Monde (GLO) pour le soja transformé provenant d'un autre continent.</p>
+          <p>En dernier recours, je prends la valeur pour l'intrant, intégrant le process le plus proche, disponible dans ECOALIM ou GFLI.</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat2-unknown-derived-opt2" data-title="Soja dérivé - lieu inconnu" data-step="5">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat2-unknown-derived">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Si je ne connais pas le lieu de transformation, je prends la valeur la plus défavorable pour cet intrant entre les 2 bases de données (GFLI / ECOALIM).</p>
+          <p>En dernier recours, je prends la valeur pour l'intrant, intégrant le process le plus proche, disponible dans ECOALIM ou GFLI</p>
+        </div>
+      </section>
+
+      <!-- 5) CAT3 avec explications dans accordéon -->
+      <section class="card" id="screen-cat3" data-title="MP végétale/animale hors soja" data-step="2">
+        <div class="backbar">
+          <button class="back" data-back="screen-options-root">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+
+        <div class="accordion">
+          <button class="acc-summary" aria-expanded="false" aria-controls="acc-panel-cat3">
+            <span>Explications</span>
+            <svg class="acc-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="acc-panel" id="acc-panel-cat3" role="region">
+            <p><strong>LOGIGRAMME POUR UNE MP VEGETALE ET ANIMALE (HORS PRODUIT DERIVE DU SOJA)</strong> Ces logigrammes ont été construits pour faciliter l’application du Guide de calcul de l’impact carbone des aliments composés. Ils constituent un outil d’aide, construit par le GT Carbone réunissant des professionnels des syndicats. Le choix des valeurs précises de facteur d’émission des intrants relève de la compétence et de la responsabilité des entreprises. A ce titre, elles doivent être en mesure de justifier les choix effectués. La bonne application du guide de calcul de l’impact carbone impose d’attribuer une valeur de facteur d’émission à tous les intrants. Lorsque l’entreprise ne connait pas la provenance d’un intrant, il conviendra de retenir par défaut le facteur d’émission le plus défavorable de l’intrant en question. Lorsque l’entreprise connait la provenance de l’intrant mais que la donnée précise n’existe pas, il conviendra de prendre la donnée générique disponible la plus pertinente. Lorsque les données ne sont pas présentes dans la base de données GFLI ou ECOALIM, les opérateurs peuvent s’orienter vers d’autres bases reconnues (tel agribalyse par exemple) dans la mesure où ils sont en capacité de jusitifier le choix effectué.</p>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:14px">
+          <button class="option" data-go="screen-cat3-unknownorigin" data-choice="Je ne sais pas où l'intrant a été cultivé / produit">
+            <h3>Je ne sais pas où l'intrant a été cultivé / produit</h3>
+            <p>Choisir entre brut et coproduit/transformé.</p>
+          </button>
+          <button class="option" data-go="screen-cat3-knownorigin" data-choice="Je sais où l'intrant a été cultivé / produit">
+            <h3>Je sais où l'intrant a été cultivé / produit</h3>
+            <p>Spécifier France / hors France et règles associées.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-unknownorigin" data-title="Hors soja - origine inconnue" data-step="3">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="grid">
+          <button class="option" data-go="screen-cat3-unknownorigin-raw" data-choice="Intrant brut / non transformé (origine inconnue)">
+            <h3>Il s'agit d'un intrant brut / non transformé</h3>
+            <p>Utiliser valeurs défavorables / schéma cultural proche.</p>
+          </button>
+          <button class="option" data-go="screen-cat3-unknownorigin-processed" data-choice="Coproduit / intrant transformé (origine inconnue)">
+            <h3>Il s'agit d'un coproduit / d'un intrant transformé</h3>
+            <p>Utiliser valeurs défavorables / process proche.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-unknownorigin-raw" data-title="Hors soja - brut - origine inconnue" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3-unknownorigin">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Je prends la valeur la plus défavorable pour l'intrant dans le GFLI.</p>
+          <p>Si elle n'existe pas dans le GFLI, je prends la valeur pour l'intrant la plus défavorable dans ECOALIM.</p>
+          <p>Si la valeur n'existe pas, j'utilise la valeur GFLI pour l'intrant qui a le schéma cultural le plus proche.</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-unknownorigin-processed" data-title="Hors soja - transformé - origine inconnue" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3-unknownorigin">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Je prends la valeur la plus défavorable pour l'intrant transformé dans le GFLI.</p>
+          <p>Si elle n'existe pas dans le GFLI, je prends la valeur pour l'intrant la plus défavorable dans ECOALIM.</p>
+          <p>Si la valeur n'existe pas, j'utilise la valeur GFLI pour l'intrant transformé qui a le schéma cultural ou le process le plus proche.</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-knownorigin" data-title="Hors soja - origine connue" data-step="3">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="grid">
+          <button class="option" data-go="screen-cat3-knownorigin-raw" data-choice="Intrant brut / non transformé (origine connue)">
+            <h3>Il s'agit d'un intrant brut / non transformé</h3>
+            <p>France vs hors France.</p>
+          </button>
+          <button class="option" data-go="screen-cat3-knownorigin-processed" data-choice="Coproduit / intrant transformé (origine connue)">
+            <h3>Il s'agit d'un coproduit / d'un intrant transformé</h3>
+            <p>Transformé en France / hors France / provenance inconnue.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-knownorigin-raw" data-title="Hors soja - brut - origine connue" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3-knownorigin">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="grid">
+          <button class="option" data-go="screen-cat3-knownorigin-raw-fr" data-choice="L'intrant est cultivé en France">
+            <h3>L'intrant est cultivé en France</h3>
+            <p>Règles ECOALIM puis GFLI puis pratique proche.</p>
+          </button>
+          <button class="option" data-go="screen-cat3-knownorigin-raw-nonfr" data-choice="L'intrant n'a pas été cultivé en France">
+            <h3>L'intrant n'a pas été cultivé en France</h3>
+            <p>Pays GFLI puis mix RER / GLO puis ECOALIM / pratique proche.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-knownorigin-raw-fr" data-title="Hors soja - brut - FR" data-step="5">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3-knownorigin-raw">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Je prends la valeur pour l'intrant dans ECOALIM.</p>
+          <p>Si elle n'existe pas, je prends la valeur de l'intrant dans le GFLI.</p>
+          <p>Si la valeur n'existe pas, je prends une donnée d'un intrant qui a la pratique culturale la plus proche dans ECOALIM.</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-knownorigin-raw-nonfr" data-title="Hors soja - brut - non FR" data-step="5">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3-knownorigin-raw">← Retour</button>
+        <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Je prends la valeur pour l'intrant du pays correspondant dans le GFLI.</p>
+          <p>Si la valeur n'existe pas :</p>
+          <p>1 &gt; Je prends la valeur Mix Européen (RER) du GFLI si l'intrant provient d'Europe</p>
+          <p>2 &gt; Je prends la valeur du Mix Monde (GLO) du GFLI si l'intrant vient d'un autre continent.</p>
+          <p>Si la valeur n'existe pas, je prends la valeur pour l'intrant correspondant dans ECOALIM.</p>
+          <p>Si la valeur n'existe pas, je prends la valeur d'un intrant qui a la pratique culturale la plus proche dans le GFLI.</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-knownorigin-processed" data-title="Hors soja - transformé - origine connue" data-step="4">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3-knownorigin">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="grid">
+          <button class="option" data-go="screen-cat3-knownorigin-proc-fr-frraw" data-choice="Transformé en France à partir d'une MP brute française">
+            <h3>L'intrant a été transformé en France à partir d'une matière première brute française</h3>
+            <p>ECOALIM / process fiable / GFLI / process proche.</p>
+          </button>
+          <button class="option" data-go="screen-cat3-knownorigin-proc-fr-unkraw" data-choice="Transformé en France (MP inconnue ou non FR)">
+            <h3>L'intrant est transformé en France mais je ne connais pas la provenance de l'intrant brut ou l'intrant brut ne provient pas de France</h3>
+            <p>Valeur France GFLI puis process / RER / ECOALIM / pratique proche.</p>
+          </button>
+          <button class="option" data-go="screen-cat3-knownorigin-proc-nonfr" data-choice="Transformé hors France">
+            <h3>L'intrant est transformé hors France</h3>
+            <p>Pays GFLI puis process / RER / GLO / ECOALIM / pratique proche.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-knownorigin-proc-fr-frraw" data-title="Hors soja - transformé FR/MP FR" data-step="5">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3-knownorigin-processed">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Je prends la valeur correspondant à cet intrant transformé dans ECOALIM.</p>
+          <p>Si la valeur n'existe pas :</p>
+          <p>1/ Si je connais de manière fiable l'impact du process de transformation, je pars de la valeur pour l'intrant brut dans ECOALIM et j'ajoute l'impact du process (cf note méthodo 1 pour l'extrusion).</p>
+          <p>2/Si je ne connais pas de manière fiable l'impact du process de transformation, j'utilise la valeur GFLI si elle existe.</p>
+          <p>Si cela n'est pas possible, je prends la valeur d'un intrant qui a le process le plus proche dans ECOALIM</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-knownorigin-proc-fr-unkraw" data-title="Hors soja - transformé FR / MP inconnue ou non FR" data-step="5">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3-knownorigin-processed">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Je prends la valeur France indiquée pour l'intrant dans le GFLI.</p>
+          <p>Si la valeur n'existe pas :</p>
+          <p>1/ Si je connais de manière fiable l'impact du process de transformation, je pars de la valeur pour l'intrant brut dans le GFLI et j'ajoute l'impact du process (cf note méthodo 1 pour l'extrusion)</p>
+          <p>- 2/Si je ne connais pas de manière fiable l'impact du process de transformation, je prends la valeur GFLI du Mix Européen (RER).</p>
+          <p>Si cela n'est pas possible, je prends la valeur pour l'intrant correspondant dans ECOALIM.</p>
+          <p>Si la valeur n'existe pas, je prends la valeur d'un intrant qui a la pratique culturale la plus proche dans le GFLI.</p>
+        </div>
+      </section>
+
+      <section class="card" id="screen-cat3-knownorigin-proc-nonfr" data-title="Hors soja - transformé hors France" data-step="5">
+        <div class="backbar">
+          <button class="back" data-back="screen-cat3-knownorigin-processed">← Retour</button>
+          <div class="right-actions"><a class="link" href="#" data-go="screen-synthese">Synthèse</a></div>
+        </div>
+        <div class="panel">
+          <p>Je prends la valeur GFLI du pays correspondant.</p>
+          <p>Si la valeur n'existe pas : 1/ Si je connais de manière fiable l'impact du process de transformation, je pars de la valeur pour la MP brute dans le GFLI et j'ajoute l'impact du process (cf note méthodo 1 pour l'extrusion) 2/Si je ne connais pas de manière fiable l'impact du process de transformation, je prends la valeur GFLI du Mix Européen (RER) si l'intrant provient d'Europe et la valeur du Mix Monde (GLO) si l'intrant vient d'un autre continent.</p>
+          <p>Si cela n'est pas possible, je prends la valeur pour l'intrant correspondant dans ECOALIM.</p>
+          <p>Si la valeur n'existe pas, je prends la valeur d'un intrant qui a la pratique culturale la plus proche dans le GFLI.</p>
+        </div>
+      </section>
+
+      <!-- 6) Page Synthèse -->
+      <section class="card" id="screen-synthese" data-title="Synthèse du parcours" data-step="5">
+        <div class="backbar">
+          <button class="back" data-back="screen-options-root">← Retour</button>
+          <div class="right-actions"></div>
+        </div>
+        <div class="panel">
+          <h3 style="margin-bottom:8px">Synthèse des choix</h3>
+          <p class="muted" id="synthese-empty">Aucun choix enregistré pour l’instant. Parcourez les étapes pour construire la synthèse.</p>
+          <div id="synthese-list" style="margin-top:8px"></div>
+        </div>
+        <div class="actions" style="justify-content:flex-end; margin-top:14px">
+          <button class="btn secondary" id="btn-clear-synthese" title="Effacer la synthèse">Effacer la synthèse</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="bar">
+        <div>© Logicarbone</div>
+        <div class="muted">Interface de démonstration. Les textes affichés reprennent intégralement vos contenus.</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    (function(){
+      const screens = Array.from(document.querySelectorAll('.card'));
+      const byId = id => document.getElementById(id);
+
+      // Stock client des choix
+      let choices = [];
+
+      function recordChoice(el){
+        const label = el?.getAttribute('data-choice');
+        if(!label) return;
+        // On ajoute en fin en évitant doublons consécutifs identiques
+        if(choices.length === 0 || choices[choices.length-1] !== label){
+          choices.push(label);
+        }
+        renderSynthese();
+        // Persistance légère (sessionStorage)
+        try { sessionStorage.setItem('logicarbone_choices', JSON.stringify(choices)); } catch(e){}
+      }
+
+      function loadChoices(){
+        try{
+          const raw = sessionStorage.getItem('logicarbone_choices');
+          if(raw){ choices = JSON.parse(raw) || []; }
+        }catch(e){}
+        renderSynthese();
+      }
+
+      function renderSynthese(){
+        const list = byId('synthese-list');
+        const empty = byId('synthese-empty');
+        if(!list || !empty) return;
+        list.innerHTML = '';
+        if(!choices.length){
+          empty.style.display = 'block';
+          return;
+        }
+        empty.style.display = 'none';
+        const ul = document.createElement('ul');
+        ul.style.margin = '0';
+        ul.style.paddingLeft = '18px';
+        choices.forEach((c, i)=>{
+          const li = document.createElement('li');
+          li.textContent = c;
+          li.style.marginBottom = '6px';
+          ul.appendChild(li);
+        });
+        list.appendChild(ul);
+      }
+
+      // Progression (heuristique simple via data-step; ajustez data-steps-total aux racines si besoin)
+      function getProgressFor(el){
+        const step = Number(el.dataset.step || 0);
+        const rootTotal = Number(document.querySelector('.card.active')?.dataset?.stepsTotal || 0);
+        const total = rootTotal || 6;
+        return Math.max(0, Math.min(100, Math.round((step/total)*100)));
+      }
+      function updateProgress(el){
+        const pct = getProgressFor(el);
+        const fillTop = document.getElementById('progress-fill');
+        const pctTop = document.getElementById('progress-pct');
+        if(fillTop) fillTop.style.width = pct + '%';
+        if(pctTop) pctTop.textContent = pct + '%';
+        document.querySelectorAll('.progress-track[role="progressbar"]').forEach(track=>{
+          track.setAttribute('aria-valuenow', String(pct));
+        });
+      }
+
+      function show(id){
+        screens.forEach(s => s.classList.remove('active'));
+        const el = byId(id);
+        if(el) el.classList.add('active');
+        const title = el?.dataset?.title || 'Logicarbone';
+        document.title = title + ' - Logicarbone';
+        window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+        updateProgress(el || document.body);
+      }
+
+      // Gestion des clics de navigation et enregistrement des choix
+      document.addEventListener('click', (e)=>{
+        const go = e.target.closest('[data-go]');
+        if(go){
+          const id = go.getAttribute('data-go');
+          if(id){
+            // Si le bouton correspond à un "choix", on l'enregistre
+            if(go.matches('[data-choice]')) recordChoice(go);
+            show(id);
+          }
+        }
+        const back = e.target.closest('[data-back]');
+        if(back){
+          const id = back.getAttribute('data-back');
+          if(id) show(id);
+        }
+      });
+
+      // Accessibilité clavier pour les “options”
+      document.querySelectorAll('.option').forEach(opt=>{
+        opt.setAttribute('role','button');
+        opt.setAttribute('tabindex','0');
+        opt.addEventListener('keydown', (ev)=>{
+          if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); opt.click(); }
+        });
+      });
+
+      // Accordéons (catégories)
+      function wireAccordion(root){
+        const btn = root.querySelector('.acc-summary');
+        const panel = root.querySelector('.acc-panel');
+        const icon = root.querySelector('.acc-icon');
+        if(!btn || !panel) return;
+        const toggle = ()=>{
+          const open = panel.classList.toggle('open');
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          if(open){
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+            if(icon) icon.style.transform = 'rotate(180deg)';
+          }else{
+            panel.style.maxHeight = '0px';
+            if(icon) icon.style.transform = 'rotate(0deg)';
+          }
+        };
+        btn.addEventListener('click', toggle);
+        btn.setAttribute('role','button');
+        btn.setAttribute('tabindex','0');
+        btn.addEventListener('keydown', (ev)=>{
+          if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); toggle(); }
+        });
+      }
+      document.querySelectorAll('.accordion').forEach(acc => wireAccordion(acc));
+
+      // Bouton effacer la synthèse
+      const btnClear = document.getElementById('btn-clear-synthese');
+      if(btnClear){
+        btnClear.addEventListener('click', ()=>{
+          choices = [];
+          try { sessionStorage.removeItem('logicarbone_choices'); } catch(e){}
+          renderSynthese();
+        });
+      }
+
+      // Init
+      loadChoices();
+      updateProgress(document.querySelector('.card.active'));
+    })();
+  </script>
+</body>
+</html>
